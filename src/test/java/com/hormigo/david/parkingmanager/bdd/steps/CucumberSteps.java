@@ -22,6 +22,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.verification.VerificationMode;
+
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -30,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.hormigo.david.parkingmanager.bdd.CucumberConfiguration;
+
 import com.hormigo.david.parkingmanager.core.exceptions.BadRegisterException;
 import com.hormigo.david.parkingmanager.user.UserAlreadyExistsException;
 import com.hormigo.david.parkingmanager.user.domain.Role;
@@ -49,8 +56,18 @@ import io.cucumber.java.es.Dado.Dados;
 import io.cucumber.spring.CucumberContextConfiguration;
 import net.bytebuddy.asm.Advice.FieldValue;
 
+import com.hormigo.david.parkingmanager.user.service.UserService;
+
+import io.cucumber.java.BeforeAll;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.cucumber.spring.CucumberContextConfiguration;
+
+
 @CucumberContextConfiguration
 public class CucumberSteps extends CucumberConfiguration {
+
 
     private static ChromeDriver driver;
     @BeforeAll
@@ -238,4 +255,30 @@ public class CucumberSteps extends CucumberConfiguration {
         return "http://localhost:" + port + endpoint;
     }
 
+    @Given("un usuario esta en la pagina inicial")
+    public void openHome() {
+        driver.get("http://localhost:" + port + "/");
+
+
+    }
+
+    @Given("un administrador esta en el formulario de creación")
+    public void openUserCreateForm()
+    {
+        driver.get("http://localhost:" + port + "/createUser");
+    }
+
+
+
+    @When("el usuario hace click sobre el botón de Usuarios")
+    public void clickUserButton(){
+        driver.findElement(By.id("to-users-link")).click();
+
+    }
+
+    @Then("se muestran todos los usuarios del sistema")
+    public void navigateToUsersList(){
+        String currentUrl = driver.getCurrentUrl();
+        assertTrue(currentUrl.contains("/users"));
+    }
 }
