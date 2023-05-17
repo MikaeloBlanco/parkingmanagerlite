@@ -4,35 +4,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.verification.VerificationMode;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.hormigo.david.parkingmanager.bdd.CucumberConfiguration;
-import com.hormigo.david.parkingmanager.user.domain.Role;
 import com.hormigo.david.parkingmanager.user.domain.User;
 import com.hormigo.david.parkingmanager.user.domain.UserRepository;
 import com.hormigo.david.parkingmanager.user.service.UserService;
+import com.hormigo.david.parkingmanager.user.service.UserServiceImpl;
 
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.BeforeAll;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
@@ -41,30 +43,32 @@ import io.cucumber.spring.CucumberContextConfiguration;
 @CucumberContextConfiguration
 public class CucumberSteps extends CucumberConfiguration {
 
-    @MockBean
-    private UserRepository mockedRepository;
-    @InjectMocks
-    private UserService mockedUserService = mock(UserService.class);
-    @Value("${local.server.port}")
-    private int port;
     private static ChromeDriver driver;
-
     @BeforeAll
     public static void prepareWebDriver() {
         System.setProperty("webdriver.chrome.driver", "C:\\ChromeDriver\\chromedriver.exe");
 
     }
+    @MockBean
+    private UserRepository mockedRepository;
+    @InjectMocks
+    private UserServiceImpl mockedUserService;
+
+    @Value("${local.server.port}")
+    private int port;
 
     @Before
     public void createDriver() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(options);
+        MockitoAnnotations.openMocks(this);
     }
 
     @After
     public void quitDriver() {
         driver.quit();
+    
     }
 
     @Dado("un usuario esta en la pagina {}")
@@ -75,30 +79,10 @@ public class CucumberSteps extends CucumberConfiguration {
 
     @Dado("el correo {} no esta asignado a otro usuario")
     public void mockUserNotExists(String email){
-        when(mockedUserService.userExists(email)).thenReturn(false);
+        when(mockedRepository.findByEmail(email)).thenReturn(null);
+        //when(mockedUserService.userExists(email)).thenReturn(false);
+        
     }
-
-    private String getUrlFromPageName(String pageName) {
-        String endPoint = "";
-        switch (pageName) {
-            case "inicial":
-                endPoint = "/";
-                break;
-            case "lista de usuarios":
-                endPoint = "/users";
-                break;
-            case "lista de sorteos":
-                endPoint = "/draws";
-                break;
-            case "creación de usuarios":
-                endPoint = "/newUser";
-            break;
-            default:
-                break;
-        }
-        return getUrlFromEndPoint(endPoint);
-    }
-
     @Cuando("relleno el campo {} con {}")
     public void populateField(String fieldName,String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
@@ -132,16 +116,36 @@ public class CucumberSteps extends CucumberConfiguration {
 
     @Entonces("se ha persistido el usuario en la base de datos")
     public void checkUserWasSaved(){
-        verify(mockedRepository.save(any(User.class)));
+        verify(mockedRepository,times(1)).save(any(User.class));
     }
 
     @Entonces("se muestra un campo de {}")
     public void fieldIsDisplayed(String fieldName){
         String fieldId = getFieldIdFromName(fieldName);
-        String currentUrl = driver.getCurrentUrl();
         WebElement field = driver.findElement(By.id(fieldId));
         
         assertTrue(field.isDisplayed());
+    }
+
+    private String getUrlFromPageName(String pageName) {
+        String endPoint = "";
+        switch (pageName) {
+            case "inicial":
+                endPoint = "/";
+                break;
+            case "lista de usuarios":
+                endPoint = "/users";
+                break;
+            case "lista de sorteos":
+                endPoint = "/draws";
+                break;
+            case "creación de usuarios":
+                endPoint = "/newUser";
+            break;
+            default:
+                break;
+        }
+        return getUrlFromEndPoint(endPoint);
     }
 
     private String getFieldIdFromName(String fieldName) {
