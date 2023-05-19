@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.naming.Name;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -38,6 +40,7 @@ import io.cucumber.java.BeforeAll;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
+import io.cucumber.java.es.Dado.Dados;
 import io.cucumber.spring.CucumberContextConfiguration;
 
 @CucumberContextConfiguration
@@ -83,11 +86,42 @@ public class CucumberSteps extends CucumberConfiguration {
         //when(mockedUserService.userExists(email)).thenReturn(false);
         
     }
+
     @Cuando("relleno el campo {} con {}")
     public void populateField(String fieldName,String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         inputField.sendKeys(fieldValue);
     }
+
+    @Dado("un usuario rellena el campo {} con {} menos nombre")
+    public void populateFieldMinusName(String fieldName, String fieldValue){
+        WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
+        if(inputField.equals(fieldName.equals("*{name}"))){
+            inputField.sendKeys(null);
+        }
+        inputField.sendKeys(fieldValue);
+    }
+
+    @Dado("un usuario rellena el campo {} con {} menos email")
+    public void populateFieldMinusEmail(String fieldName, String fieldValue){
+        WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
+        if(inputField.equals(fieldName.equals("*{email}"))){
+            inputField.sendKeys(null);
+        }
+        inputField.sendKeys(fieldValue);
+    }
+
+    @Dado("un usuario rellena el campo {} con {} menos apellido1")
+    public void populateFieldMinusLastName(String fieldName, String fieldValue){
+        WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
+        if(inputField.equals(fieldName.equals("*{lastName1}"))){
+            inputField.sendKeys(null);
+        }
+        inputField.sendKeys(fieldValue);
+    }
+
+    @Dado("un usuario rellena el campo {} con {} y email ya existe")
+    
 
     @Cuando("el usuario hace click sobre el botón de {}")
     public void clickButton(String buttonName) {
@@ -126,6 +160,12 @@ public class CucumberSteps extends CucumberConfiguration {
         
         assertTrue(field.isDisplayed());
     }
+
+    @Entonces("Salta error de que falta {}")
+        public void errorIsCatched(String fieldName){
+            
+        }
+    
 
     private String getUrlFromPageName(String pageName) {
         String endPoint = "";
