@@ -116,7 +116,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Cuando("un usuario rellena el campo {} con {} menos nombre")
+    @Cuando("relleno el campo {} con {} menos nombre")
     public void populateFieldMinusName(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{name}"))){
@@ -125,7 +125,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Cuando("un usuario rellena el campo {} con {} menos email")
+    @Cuando("relleno el campo {} con {} menos email")
     public void populateFieldMinusEmail(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{email}"))){
@@ -134,7 +134,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Cuando("un usuario rellena el campo {} con {} menos apellido1")
+    @Cuando("relleno el campo {} con {} menos apellido1")
     public void populateFieldMinusLastName(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{lastName1}"))){
@@ -143,11 +143,15 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Cuando("un usuario rellena el campo {} con {} y email ya existe")
+    @Cuando("relleno el campo {} con {} y email ya existe")
     public void populateFieldEmailTaken(String fieldName, String fieldValue){
         UserRepository mockedRepository = mock(UserRepository.class);
         UserDao userDao = new UserDao(fieldValue,fieldValue,fieldValue,fieldValue,Role.PROFESSOR);
         when(mockedRepository.findByEmail(fieldValue)).thenReturn(notNull());
+    }
+
+    @Cuando("no relleno el campo {} con {}")
+    public void unpopulateField(String fieldName, String fieldValue){
     }
     
 
