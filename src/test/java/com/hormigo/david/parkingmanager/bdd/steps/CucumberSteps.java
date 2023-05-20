@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -29,7 +30,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.hormigo.david.parkingmanager.bdd.CucumberConfiguration;
+import com.hormigo.david.parkingmanager.core.exceptions.BadRegisterException;
+import com.hormigo.david.parkingmanager.user.UserAlreadyExistsException;
+import com.hormigo.david.parkingmanager.user.domain.Role;
 import com.hormigo.david.parkingmanager.user.domain.User;
+import com.hormigo.david.parkingmanager.user.domain.UserDao;
 import com.hormigo.david.parkingmanager.user.domain.UserRepository;
 import com.hormigo.david.parkingmanager.user.service.UserService;
 import com.hormigo.david.parkingmanager.user.service.UserServiceImpl;
@@ -42,6 +47,7 @@ import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Dado.Dados;
 import io.cucumber.spring.CucumberContextConfiguration;
+import net.bytebuddy.asm.Advice.FieldValue;
 
 @CucumberContextConfiguration
 public class CucumberSteps extends CucumberConfiguration {
@@ -49,7 +55,7 @@ public class CucumberSteps extends CucumberConfiguration {
     private static ChromeDriver driver;
     @BeforeAll
     public static void prepareWebDriver() {
-        System.setProperty("webdriver.chrome.driver", "C:\\ChromeDriver\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "D:\\ChromeDriver\\chromedriver.exe");
 
     }
     @MockBean
@@ -82,8 +88,8 @@ public class CucumberSteps extends CucumberConfiguration {
 
     @Dado("el correo {} no esta asignado a otro usuario")
     public void mockUserNotExists(String email){
+        when(mockedUserService.userExists(email)).thenReturn(false);
         when(mockedRepository.findByEmail(email)).thenReturn(null);
-        //when(mockedUserService.userExists(email)).thenReturn(false);
         
     }
 
@@ -93,7 +99,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Dado("un usuario rellena el campo {} con {} menos nombre")
+    @Cuando("un usuario rellena el campo {} con {} menos nombre")
     public void populateFieldMinusName(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{name}"))){
@@ -102,7 +108,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Dado("un usuario rellena el campo {} con {} menos email")
+    @Cuando("un usuario rellena el campo {} con {} menos email")
     public void populateFieldMinusEmail(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{email}"))){
@@ -111,7 +117,7 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Dado("un usuario rellena el campo {} con {} menos apellido1")
+    @Cuando("un usuario rellena el campo {} con {} menos apellido1")
     public void populateFieldMinusLastName(String fieldName, String fieldValue){
         WebElement inputField = driver.findElement(By.id(getFieldIdFromName(fieldName)));
         if(inputField.equals(fieldName.equals("*{lastName1}"))){
@@ -120,7 +126,12 @@ public class CucumberSteps extends CucumberConfiguration {
         inputField.sendKeys(fieldValue);
     }
 
-    @Dado("un usuario rellena el campo {} con {} y email ya existe")
+    @Cuando("un usuario rellena el campo {} con {} y email ya existe")
+    public void populateFieldEmailTaken(String fieldName, String fieldValue){
+        UserRepository mockedRepository = mock(UserRepository.class);
+        UserDao userDao = new UserDao(fieldValue,fieldValue,fieldValue,fieldValue,Role.PROFESSOR);
+        when(mockedRepository.findByEmail(fieldValue)).thenReturn(notNull());
+    }
     
 
     @Cuando("el usuario hace click sobre el botón de {}")
@@ -161,11 +172,26 @@ public class CucumberSteps extends CucumberConfiguration {
         assertTrue(field.isDisplayed());
     }
 
-    @Entonces("Salta error de que falta {}")
-        public void errorIsCatched(String fieldName){
-            
+    @Entonces("Salta error de que falta {} y se mantiene el usuario en la pagina de creación de usuarios")
+        public void errorIsCatched(String fieldName, String fieldValue) throws BadRegisterException{
+            switch(fieldName){
+                case "*{email}":
+                    populateFieldMinusEmail(fieldName, fieldValue);
+                    break;
+                case "*{name}":
+                    populateFieldMinusName(fieldName, fieldValue);
+                    break;
+                case "*{lastName1}":
+                    populateFieldMinusLastName(fieldName, fieldValue);
+                    break;
+            }
         }
-    
+
+    @Entonces("Salta un error de que el usuario ya existe")
+        public void userIsCreated(){
+            verify(mockedRepository,times(1)).findByEmail(anyString());
+        }
+
 
     private String getUrlFromPageName(String pageName) {
         String endPoint = "";
