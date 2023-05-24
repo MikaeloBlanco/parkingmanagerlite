@@ -53,12 +53,14 @@ import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Dado.Dados;
+import io.cucumber.java.es.Y;
 import io.cucumber.spring.CucumberContextConfiguration;
 import net.bytebuddy.asm.Advice.FieldValue;
 
 import com.hormigo.david.parkingmanager.user.service.UserService;
 
 import io.cucumber.java.BeforeAll;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -97,17 +99,76 @@ public class CucumberSteps extends CucumberConfiguration {
     
     }
 
-    @Dado("un usuario esta en la pagina {}")
+    @Dado("el correo {} {} esta asignado a otro usuario")
+    public void mockUserNotExists(String email,String condition){
+        if(condition.equals("no")){
+        when(mockedUserService.userExists(email)).thenReturn(false);
+        }
+        if (condition.equals("si")) {
+            when(mockedRepository.findByEmail(email)).thenReturn(new User(email, "Miguel", "Blanco", null));
+            when(mockedUserService.userExists(email)).thenReturn(true);
+        }
+        
+    }
+
+    @Given("un usuario esta en la pagina {}")
     public void openPage(String pageName) {
-        driver.get(getUrlFromPageName(pageName));
+        String endPoint = "";
+
+        switch (pageName) {
+            case "inicial":
+                endPoint = "/";
+                break;
+
+            case "usuarios":
+                endPoint = "/users";
+                break;
+
+            case "sorteos":
+                endPoint = "/draws";
+                break;
+
+            case "pagina creación de usuarios":
+                endPoint = "/newUser";
+                break;
+
+            case "pagina de creación de Sorteos":
+                endPoint = "/newDraw";
+                break;
+
+        }
+
+        driver.get("http://localhost:" + port + endPoint);
 
     }
 
-    @Dado("el correo {} no esta asignado a otro usuario")
-    public void mockUserNotExists(String email){
-        when(mockedUserService.userExists(email)).thenReturn(false);
-        when(mockedRepository.findByEmail(email)).thenReturn(null);
-        
+/////////////////////////////////////////////////CUANDO////////////////////////////////////////////////
+    @Cuando("el usuario hace click sobre el botón de {}")
+    public void clickButton(String buttonName) {
+        String buttonId = "";
+        switch (buttonName) {
+            case "Usuarios":
+                buttonId = "to-users-link";
+                break;
+            case "Sorteos":
+                buttonId = "to-draws-link";
+                break;
+            case "crear usuario":
+                buttonId = "user-create-button-submit";
+                break;
+            case "crear Sorteos":
+                buttonId = "draw-create-button-summit";
+                break;
+            case "Creación de usuario":
+                buttonId = "users-button-create";
+                break;
+            case "Creación de sorteo":
+                buttonId = "draws-button-create";
+                break;
+            default:
+                break;
+        }
+        driver.findElement(By.id(buttonId)).click();
     }
 
     @Cuando("relleno el campo {} con {}")
@@ -152,26 +213,6 @@ public class CucumberSteps extends CucumberConfiguration {
 
     @Cuando("no relleno el campo {} con {}")
     public void unpopulateField(String fieldName, String fieldValue){
-    }
-    
-
-    @Cuando("el usuario hace click sobre el botón de {}")
-    public void clickButton(String buttonName) {
-        String buttonId = "";
-        switch (buttonName) {
-            case "Usuarios":
-                buttonId = "to-users-link";
-                break;
-            case "Sorteos":
-                buttonId = "to-draws-link";
-                break;
-            case "crear usuario":
-                buttonId = "user-create-button-submit";
-                break;
-            default:
-                break;
-        }
-        driver.findElement(By.id(buttonId)).click();
     }
 
     @Entonces("esta en la pagina de {}")

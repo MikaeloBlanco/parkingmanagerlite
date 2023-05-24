@@ -9,7 +9,7 @@ Característica: Gestion de sorteos
   Escenario: Navegación a la creación de sorteos 
     Dado un usuario esta en la pagina inicial
     Cuando el usuario hace click sobre el botón de Sorteos
-    Y el usuario hace click sobre el botón de crear Sorteos
+    Y el usuario hace click sobre el botón de creación de Sorteos
     Entonces esta en la pagina de creación de Sorteos
 
   Escenario: Comprobar que el formulario de creacion de sorteos tiene todos los elementos
@@ -25,6 +25,6 @@ Característica: Gestion de sorteos
   Escenario: Creación de sorteos sin descripción
     Dado un usuario esta en la pagina de creación de Sorteos
     Y hace click en el boton de crear Sorteos
-    Entonces esta en la pagina de creación de sorteos 
+    Entonces esta en la pagina de creación de Sorteos 
     Y salta un error de descripción no introducida
     
